@@ -81,7 +81,7 @@ function initialQuestions() {
         type: 'list',
         message: 'What would you like to do?',
         choices: ['View All Employees', "Add Employee", "Update Employee Role",
-        "Veiw All Roles", "Add Role", "Veiw All Departments", "Add Department", "Quit"],
+        "Veiw All Roles", "Add Role", "Veiw All Departments", "Add Department","Update Employee Manager", "Quit"],
         name: 'firstQ'
       },
     ]  
@@ -103,13 +103,16 @@ inquirer
         setTimeout(initialQuestions, 600);
       break;
     case 'Add Role':
-      add(depArr)
+      addRole(depArr)
       break;
     case 'Update Employee Role':
         update(empArr)
       break;
     case 'Add Employee':
       addEmployee() 
+      break;
+    case "Update Employee Manager":
+      updateManager()
       break;
     case 'View All Employees':
     db.query(`SELECT employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
@@ -121,10 +124,39 @@ inquirer
     setTimeout(initialQuestions, 600);
       break;
     case 'Quit': 
-    db.end()
     break;
   }
 })
+function updateManager(){
+  const managerQuestions = [
+    {
+      type: 'list',
+      message: 'Which employee role would you like to update?',
+      choices: empArr,
+      name: 'employee'
+    },
+    {
+      type: 'list',
+      message: 'Who is the employees manager',
+      choices: empArr,
+      name: 'manager'
+    }
+  ]
+  inquirer
+  .prompt(managerQuestions)
+  .then(function ({employee, manager}) {
+    const employeeId = empArr.indexOf(employee)
+    const managerId = empArr.indexOf(manager)
+    db.query(`UPDATE employee 
+    SET manager_id = ${managerId}
+    WHERE employee.id = ${employeeId}`, (err, res) => {
+        if (err) throw err;
+        console.log("The selected employee's role has been updated..")
+        setTimeout(initialQuestions, 600);
+        getarrays()
+    });
+  });
+}
 
 }
 function addEmployee() {
@@ -157,15 +189,15 @@ function addEmployee() {
   .then(function ({first_name, last_name, role, manager}) {
     const manager_Id = empArr.indexOf(manager)
     const role_id = roleArr.indexOf(role)
-    db.query(`INSERT INTO employee (first_name, last_name, role_id,manager_id)
-    VALUES ("${first_name}", "${last_name}", ${manager_Id}, ${role_id});`, async (err, res) => {
+    db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+    VALUES ("${first_name}", "${last_name}", ${role_id}, ${manager_Id});`, (err, res) => {
         if (err) throw err;
         setTimeout(initialQuestions, 600);
     })
     empArr.push(first_name)
   })
 }
-function add(depArr) {
+function addRole(depArr) {
   console.log(depArr)
   const departmentQuestions = [
     {
@@ -189,14 +221,14 @@ function add(depArr) {
   .prompt(departmentQuestions)
   .then(function ({title, salary, department}) {
     const department_id = depArr.indexOf(department)
-    console.log(department_id)
     db.query(`INSERT INTO role (title, department_id, salary) VALUES ('${title}', ${department_id}, '${salary}')`, function (err, results) {
       if (err) throw err;
+      else
       console.log(`Success! \n Added ${title} to role!`);
       });
   })
   .then (function (title){
-    initialQuestions();
+    setTimeout(initialQuestions, 600);
     roleArr.push(title)
   })
 }
