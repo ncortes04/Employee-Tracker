@@ -74,7 +74,7 @@ function getarrays () {
   })
 }
 getarrays()
-
+//initia; questions
 function initialQuestions() {
   const createMember  = [
     {
@@ -88,6 +88,7 @@ function initialQuestions() {
 inquirer
 .prompt(createMember)
 .then(function ({firstQ}) {
+  //runs a switch function taht runs firstq as a parameter to run various functions and sequel commands
   switch (firstQ) {
     case 'Veiw All Roles':
       db.query('SELECT role.id ,role.title, department.name department, role.salary FROM role JOIN department ON role.department_id = department.id;', function (err, results) {
@@ -111,6 +112,9 @@ inquirer
     case 'Add Employee':
       addEmployee() 
       break;
+      case 'Add Department':
+      addDepartment() 
+      break;
     case 'View All Employees':
     db.query(`SELECT employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id
@@ -120,12 +124,9 @@ inquirer
     });
     setTimeout(initialQuestions, 600);
       break;
-    case 'Quit': 
-    db.end()
-    break;
   }
 })
-
+//add employee command taht adds an employee
 }
 function addEmployee() {
   const departmentQuestions = [
@@ -155,19 +156,23 @@ function addEmployee() {
   inquirer
   .prompt(departmentQuestions)
   .then(function ({first_name, last_name, role, manager}) {
+    //retruns index of the employee since we are wanting the id to define which mamanger we want
     const manager_Id = empArr.indexOf(manager)
+    //we run an index of for the role which points to a role
     const role_id = roleArr.indexOf(role)
     db.query(`INSERT INTO employee (first_name, last_name, role_id,manager_id)
     VALUES ("${first_name}", "${last_name}", ${manager_Id}, ${role_id});`, async (err, res) => {
         if (err) throw err;
         setTimeout(initialQuestions, 600);
+        //inserts employee and runs the initial prompt 600 ms later to prevent bugs
     })
+    //pushes first name to the array so we have an update index
     empArr.push(first_name)
   })
 }
 function add(depArr) {
-  console.log(depArr)
-  const departmentQuestions = [
+  //add role role questions
+  const roleQuestions = [
     {
       type: 'input',
       message: 'What is the name of the role?',
@@ -186,22 +191,24 @@ function add(depArr) {
     }
   ]
   inquirer
-  .prompt(departmentQuestions)
+  .prompt(roleQuestions)
   .then(function ({title, salary, department}) {
+    //gets indexOf department to return pointer id
     const department_id = depArr.indexOf(department)
-    console.log(department_id)
     db.query(`INSERT INTO role (title, department_id, salary) VALUES ('${title}', ${department_id}, '${salary}')`, function (err, results) {
       if (err) throw err;
       console.log(`Success! \n Added ${title} to role!`);
       });
   })
   .then (function (title){
+    //runs initial questions and pushes to update title
     initialQuestions();
     roleArr.push(title)
   })
 }
+//updates employee
 function update (empArr) {
-
+//employee questions
 const updateQuestions = [
   {
     type: 'list',
@@ -219,9 +226,9 @@ const updateQuestions = [
 inquirer
 .prompt(updateQuestions)
 .then(function ({employee, roleSelect}) {
+  //gets index to know which employe we selected as wel as the role
   const employeeId = empArr.indexOf(employee)
   const roleId = roleArr.indexOf(roleSelect)
-  console.log(employeeId, roleId)
   db.query(`UPDATE employee 
   SET role_id = ${roleId}
   WHERE employee.id = ${employeeId}`, async (err, res) => {
@@ -232,4 +239,29 @@ inquirer
   })
 })
 }
+
+function addDepartment() {
+  const roleQuestions = [
+    {
+      type: 'input',
+      message: 'What is the name of the department?',
+      name: 'name'
+    },
+  ]
+  inquirer
+  .prompt(roleQuestions)
+  .then(function ({name}) {
+    //gets indexOf department to return pointer id
+    db.query(`INSERT INTO Department (name) VALUES ('${name}')`, function (err, results) {
+      if (err) throw err;
+      });
+      console.log(`Success! \n Added ${name} to department!`);
+  })
+  .then (function (title){
+    //runs initial questions and pushes to update title
+    initialQuestions();
+    roleArr.push(title)
+  })
+}
+
 initialQuestions()
