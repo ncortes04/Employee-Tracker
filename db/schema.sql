@@ -21,7 +21,11 @@ CREATE TABLE employee (
   first_name VARCHAR(30),
   last_name VARCHAR(30),
   role_id INT,
+<<<<<<< HEAD
   manager_id INT,
   FOREIGN KEY (role_id) 
   REFERENCES role(id) 
+=======
+  manager_id INT
+>>>>>>> c5f1b82e1592c4fea447392e05e89aefdd5fcc4a
 );
