@@ -3,3 +3,4 @@ FROM employee
 LEFT JOIN employee manager on manager.id = employee.manager_id
 INNER JOIN role ON (role.id = employee.role_id) INNER JOIN department ON (department.id = role.department_id) ORDER BY employee.id;
 
+/* daddada */
